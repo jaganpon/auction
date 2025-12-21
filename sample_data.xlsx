@@ -1,0 +1,11 @@
+emp_id,player_name,player_type,image_url
+EMP001,Virat Kohli,Batsman,
+EMP002,Rohit Sharma,Batsman,
+EMP003,Jasprit Bumrah,Bowler,
+EMP004,Hardik Pandya,All-rounder,
+EMP005,Rishabh Pant,Wicket-keeper,
+EMP006,Ravindra Jadeja,All-rounder,
+EMP007,Mohammed Shami,Bowler,
+EMP008,KL Rahul,Wicket-keeper,
+EMP009,Shikhar Dhawan,Batsman,
+EMP010,Yuzvendra Chahal,Bowler,
