@@ -66,8 +66,13 @@ web_modules/
 .yarn-integrity
 
 # dotenv environment variable files
+# Environment variables
 .env
-.env.*
+.env.local
+.env.production
+.env.development
+
+# Keep example file
 !.env.example
 
 # parcel-bundler cache (https://parceljs.org/)
