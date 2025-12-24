@@ -1,339 +1,158 @@
-import React, { useState } from "react";
-import {
-  Trophy,
-  Users,
-  DollarSign,
-  ArrowRight,
-  TrendingUp,
-} from "lucide-react";
-import TeamCard from "../components/TeamCard.jsx";
-import TeamDetailModal from "../components/TeamDetailModal.jsx";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useAuth } from "../hooks/useAuth";
+import axios from "axios";
+import { API_URL } from "../config/api";
 
-const Dashboard = ({ tournaments }) => {
-  const [selectedTournament, setSelectedTournament] = useState(null);
-  const [selectedTeam, setSelectedTeam] = useState(null);
-  const [showTeamDetail, setShowTeamDetail] = useState(false);
+const Dashboard = () => {
+  const [tournaments, setTournaments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { user, token, logout } = useAuth();
+  const navigate = useNavigate();
 
-  // Calculate overall statistics
-  const totalTeams = tournaments.reduce((sum, t) => sum + t.teams.length, 0);
-  const totalPlayers = tournaments.reduce(
-    (sum, t) =>
-      sum + t.teams.reduce((tSum, team) => tSum + team.players.length, 0),
-    0
-  );
-  const totalBudget = tournaments.reduce(
-    (sum, t) =>
-      sum + t.teams.reduce((tSum, team) => tSum + team.initialValue, 0),
-    0
-  );
-  const totalSpent = tournaments.reduce(
-    (sum, t) =>
-      sum +
-      t.teams.reduce(
-        (tSum, team) => tSum + (team.initialValue - team.currentValue),
-        0
-      ),
-    0
-  );
+  useEffect(() => {
+    fetchTournaments();
+  }, []);
 
-  // View: Team List (when tournament is selected)
-  if (selectedTournament) {
-    const tournamentPlayers = selectedTournament.teams.reduce(
-      (sum, team) => sum + team.players.length,
-      0
-    );
-    const tournamentBudget = selectedTournament.teams.reduce(
-      (sum, team) => sum + team.initialValue,
-      0
-    );
-    const tournamentSpent = selectedTournament.teams.reduce(
-      (sum, team) => sum + (team.initialValue - team.currentValue),
-      0
-    );
+  const fetchTournaments = async () => {
+    try {
+      const response = await axios.get(`${API_URL}/tournaments`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setTournaments(response.data);
+    } catch (error) {
+      console.error("Error fetching tournaments:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-        <div className="container mx-auto px-4 py-8">
-          {/* Back Button */}
-          <button
-            onClick={() => setSelectedTournament(null)}
-            className="mb-6 flex items-center space-x-2 text-blue-600 hover:text-blue-700 font-semibold text-lg"
-          >
-            <ArrowRight className="w-5 h-5 transform rotate-180" />
-            <span>Back to Tournaments</span>
-          </button>
-
-          {/* Tournament Header */}
-          <div className="bg-white rounded-xl shadow-lg p-8 mb-8">
-            <div className="flex items-center space-x-4 mb-6">
-              <div className="p-4 bg-gradient-to-br from-blue-500 to-purple-500 rounded-lg">
-                <Trophy className="w-10 h-10 text-white" />
-              </div>
-              <div>
-                <h1 className="text-4xl font-bold text-gray-800">
-                  {selectedTournament.name}
-                </h1>
-                <p className="text-gray-500 mt-1">
-                  Created{" "}
-                  {new Date(selectedTournament.createdAt).toLocaleDateString()}
-                </p>
-              </div>
-            </div>
-
-            {/* Tournament Statistics */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-blue-50 rounded-lg p-4 border border-blue-100">
-                <p className="text-blue-600 text-sm font-semibold mb-1">
-                  Teams
-                </p>
-                <p className="text-3xl font-bold text-blue-700">
-                  {selectedTournament.teams.length}
-                </p>
-              </div>
-              <div className="bg-green-50 rounded-lg p-4 border border-green-100">
-                <p className="text-green-600 text-sm font-semibold mb-1">
-                  Players
-                </p>
-                <p className="text-3xl font-bold text-green-700">
-                  {tournamentPlayers}
-                </p>
-              </div>
-              <div className="bg-purple-50 rounded-lg p-4 border border-purple-100">
-                <p className="text-purple-600 text-sm font-semibold mb-1">
-                  Total Budget
-                </p>
-                <p className="text-2xl font-bold text-purple-700">
-                  ₹{(tournamentBudget / 10000000).toFixed(1)}Cr
-                </p>
-              </div>
-              <div className="bg-red-50 rounded-lg p-4 border border-red-100">
-                <p className="text-red-600 text-sm font-semibold mb-1">Spent</p>
-                <p className="text-2xl font-bold text-red-700">
-                  ₹{(tournamentSpent / 10000000).toFixed(1)}Cr
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Teams Section */}
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-6 flex items-center">
-              <Users className="w-7 h-7 mr-3" />
-              Teams ({selectedTournament.teams.length})
-            </h2>
-
-            {selectedTournament.teams.length === 0 ? (
-              <div className="bg-white rounded-lg shadow p-12 text-center">
-                <Users className="w-16 h-16 text-gray-300 mx-auto mb-3" />
-                <p className="text-gray-500">No teams in this tournament</p>
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                {selectedTournament.teams.map((team) => (
-                  <TeamCard
-                    key={team.id}
-                    team={team}
-                    onClick={() => {
-                      setSelectedTeam({
-                        ...team,
-                        tournamentName: selectedTournament.name,
-                        tournamentId: selectedTournament.id,
-                      });
-                      setShowTeamDetail(true);
-                    }}
-                  />
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* Team Detail Modal */}
-          <TeamDetailModal
-            team={selectedTeam}
-            isOpen={showTeamDetail}
-            onClose={() => setShowTeamDetail(false)}
-          />
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     );
   }
 
-  // View: Tournament Selection (Default)
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <div className="container mx-auto px-4 py-8">
-        {/* Page Header */}
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-bold mb-4 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-            Cricket Auction Dashboard
-          </h1>
-          <p className="text-gray-600 text-xl">
-            Select a tournament to view teams and statistics
-          </p>
-        </div>
-
-        {/* Overall Statistics */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-12">
-          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-blue-500">
-            <div className="flex items-center justify-between mb-2">
-              <Trophy className="w-8 h-8 text-blue-500" />
-              <span className="text-3xl font-bold text-blue-600">
-                {tournaments.length}
-              </span>
-            </div>
-            <p className="text-gray-600 font-semibold">Tournaments</p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-green-500">
-            <div className="flex items-center justify-between mb-2">
-              <Users className="w-8 h-8 text-green-500" />
-              <span className="text-3xl font-bold text-green-600">
-                {totalTeams}
-              </span>
-            </div>
-            <p className="text-gray-600 font-semibold">Total Teams</p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-purple-500">
-            <div className="flex items-center justify-between mb-2">
-              <DollarSign className="w-8 h-8 text-purple-500" />
-              <span className="text-3xl font-bold text-purple-600">
-                ₹{(totalBudget / 10000000).toFixed(0)}Cr
-              </span>
-            </div>
-            <p className="text-gray-600 font-semibold">Total Budget</p>
-          </div>
-
-          <div className="bg-white rounded-xl shadow-lg p-6 border-l-4 border-red-500">
-            <div className="flex items-center justify-between mb-2">
-              <TrendingUp className="w-8 h-8 text-red-500" />
-              <span className="text-3xl font-bold text-red-600">
-                {totalPlayers}
-              </span>
-            </div>
-            <p className="text-gray-600 font-semibold">Players Signed</p>
-          </div>
-        </div>
-
-        {/* Tournament Cards */}
-        {tournaments.length === 0 ? (
-          <div className="bg-white rounded-xl shadow-lg p-16 text-center">
-            <Trophy className="w-24 h-24 text-gray-300 mx-auto mb-6" />
-            <h3 className="text-2xl font-bold text-gray-600 mb-3">
-              No Tournaments Yet
-            </h3>
-            <p className="text-gray-500 mb-6">
-              Admin users can create tournaments through the Control Panel
+    <div className="min-h-screen bg-gray-100">
+      {/* Header */}
+      <header className="bg-white shadow">
+        <div className="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8 flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-gray-900">
+              Cricket Auction
+            </h1>
+            <p className="text-sm text-gray-600 mt-1">
+              Welcome, <span className="font-semibold">{user?.username}</span> (
+              {user?.role})
             </p>
           </div>
-        ) : (
-          <div>
-            <h2 className="text-3xl font-bold text-gray-800 mb-8">
-              Select a Tournament
-            </h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {tournaments.map((tournament) => {
-                const tournamentPlayers = tournament.teams.reduce(
-                  (sum, team) => sum + team.players.length,
-                  0
-                );
-                const tournamentBudget = tournament.teams.reduce(
-                  (sum, team) => sum + team.initialValue,
-                  0
-                );
-                const tournamentSpent = tournament.teams.reduce(
-                  (sum, team) => sum + (team.initialValue - team.currentValue),
-                  0
-                );
-                const budgetUsedPercent =
-                  tournamentBudget > 0
-                    ? (tournamentSpent / tournamentBudget) * 100
-                    : 0;
+          <button
+            onClick={logout}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+          >
+            Logout
+          </button>
+        </div>
+      </header>
 
-                return (
-                  <div
-                    key={tournament.id}
-                    onClick={() => setSelectedTournament(tournament)}
-                    className="bg-white rounded-xl shadow-lg p-8 cursor-pointer hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 border-2 border-transparent hover:border-blue-500"
-                  >
-                    {/* Tournament Icon */}
-                    <div className="flex justify-center mb-6">
-                      <div className="p-6 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full shadow-lg">
-                        <Trophy className="w-12 h-12 text-white" />
-                      </div>
+      {/* Main Content */}
+      <main className="max-w-7xl mx-auto px-4 py-8 sm:px-6 lg:px-8">
+        {/* Action Buttons */}
+        {user?.role === "admin" && (
+          <div className="mb-8">
+            <button
+              onClick={() => navigate("/tournament/new")}
+              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold"
+            >
+              + Create New Tournament
+            </button>
+          </div>
+        )}
+
+        {/* Tournaments Grid */}
+        <div className="bg-white rounded-lg shadow">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <h2 className="text-xl font-bold text-gray-800">Tournaments</h2>
+          </div>
+
+          {tournaments.length === 0 ? (
+            <div className="px-6 py-12 text-center">
+              <p className="text-gray-500">No tournaments found.</p>
+              {user?.role === "admin" && (
+                <p className="text-sm text-gray-400 mt-2">
+                  Create your first tournament to get started!
+                </p>
+              )}
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+              {tournaments.map((tournament) => (
+                <div
+                  key={tournament.id}
+                  className="border border-gray-200 rounded-lg p-6 hover:shadow-lg transition-shadow cursor-pointer"
+                  onClick={() => navigate(`/tournament/${tournament.id}`)}
+                >
+                  <h3 className="text-lg font-bold text-gray-800 mb-3">
+                    {tournament.name}
+                  </h3>
+
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Teams:</span>
+                      <span className="font-semibold">
+                        {tournament.teams?.length || 0}
+                      </span>
                     </div>
-
-                    {/* Tournament Name */}
-                    <h3 className="text-2xl font-bold text-center mb-4 text-gray-800">
-                      {tournament.name}
-                    </h3>
-
-                    {/* Stats Grid */}
-                    <div className="space-y-3 mb-6">
-                      <div className="flex justify-between items-center p-3 bg-blue-50 rounded-lg">
-                        <span className="text-sm font-semibold text-blue-700">
-                          Teams
-                        </span>
-                        <span className="text-xl font-bold text-blue-800">
-                          {tournament.teams.length}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">
-                        <span className="text-sm font-semibold text-green-700">
-                          Players
-                        </span>
-                        <span className="text-xl font-bold text-green-800">
-                          {tournamentPlayers}
-                        </span>
-                      </div>
-                      <div className="flex justify-between items-center p-3 bg-purple-50 rounded-lg">
-                        <span className="text-sm font-semibold text-purple-700">
-                          Budget
-                        </span>
-                        <span className="text-lg font-bold text-purple-800">
-                          ₹{(tournamentBudget / 10000000).toFixed(1)}Cr
-                        </span>
-                      </div>
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Players:</span>
+                      <span className="font-semibold">
+                        {tournament.players?.length || 0}
+                      </span>
                     </div>
-
-                    {/* Budget Bar */}
-                    <div>
-                      <div className="flex justify-between text-xs text-gray-600 mb-2">
-                        <span>Budget Used</span>
-                        <span className="font-bold">
-                          {budgetUsedPercent.toFixed(0)}%
-                        </span>
-                      </div>
-                      <div className="w-full bg-gray-200 rounded-full h-2 overflow-hidden">
-                        <div
-                          className={`h-full transition-all duration-500 ${
-                            budgetUsedPercent > 80
-                              ? "bg-gradient-to-r from-red-500 to-red-600"
-                              : budgetUsedPercent > 50
-                              ? "bg-gradient-to-r from-yellow-500 to-orange-500"
-                              : "bg-gradient-to-r from-green-500 to-green-600"
-                          }`}
-                          style={{
-                            width: `${Math.min(budgetUsedPercent, 100)}%`,
-                          }}
-                        ></div>
-                      </div>
-                    </div>
-
-                    {/* Click Hint */}
-                    <div className="mt-6 text-center">
-                      <span className="inline-flex items-center space-x-2 text-blue-600 font-semibold">
-                        <span>View Teams</span>
-                        <ArrowRight className="w-4 h-4" />
+                    <div className="flex justify-between">
+                      <span className="text-gray-600">Assigned:</span>
+                      <span className="font-semibold text-green-600">
+                        {tournament.players?.filter((p) => p.is_assigned)
+                          .length || 0}
                       </span>
                     </div>
                   </div>
-                );
-              })}
+
+                  <div className="mt-4 pt-4 border-t border-gray-200 flex gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/tournament/${tournament.id}`);
+                      }}
+                      className="flex-1 bg-gray-100 text-gray-700 px-3 py-2 rounded text-sm hover:bg-gray-200 transition-colors"
+                    >
+                      View
+                    </button>
+                    {(user?.role === "admin" ||
+                      user?.role === "auctioneer") && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/auction/${tournament.id}`);
+                        }}
+                        className="flex-1 bg-blue-600 text-white px-3 py-2 rounded text-sm hover:bg-blue-700 transition-colors"
+                      >
+                        Auction
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
             </div>
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      </main>
     </div>
   );
 };
