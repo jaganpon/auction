@@ -18,33 +18,36 @@ jobs:
        id-token: write
        contents: read
     steps:
-      - uses: actions/checkout@v3
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           submodules: true
           lfs: false
-      - name: Install OIDC Client from Core Package
-        run: npm install @actions/core@1.6.0 @actions/http-client
-      - name: Get Id Token
-        uses: actions/github-script@v6
-        id: idtoken
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-           script: |
-               const coredemo = require('@actions/core')
-               return await coredemo.getIDToken()
-           result-encoding: string
-      - name: Build And Deploy
+          node-version: 20.19.0
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test -- --watch=false
+
+      - name: Build React app
+        run: npm run build
+
+      - name: Deploy to Azure Static Web Apps
         id: builddeploy
         uses: Azure/static-web-apps-deploy@v1
         with:
           azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_WITTY_RIVER_023EF3710 }}
           action: "upload"
-          ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
-          # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
-          app_location: "/" # App source code path
-          api_location: "api" # Api source code path - optional
-          output_location: "build" # Built app content directory - optional
-          github_id_token: ${{ steps.idtoken.outputs.result }}
-          ###### End of Repository/Build Configurations ######
+          app_location: "/"        # App source code path
+          api_location: "api"      # Optional API path
+          output_location: "build" # Built app content directory
 
   close_pull_request_job:
     if: github.event_name == 'pull_request' && github.event.action == 'closed'
