@@ -2,7 +2,7 @@
 // This file centralizes all API endpoint configurations
 
 // Get API URL from environment variable or use default
-const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const API_BASE_URL = import.meta.env.VITE_API_URL || "https://auction-huaeb7a7g7dvcuhz.canadacentral-01.azurewebsites.net";
 
 // Export API endpoints
 export const API_URL = `${API_BASE_URL}/api`;
