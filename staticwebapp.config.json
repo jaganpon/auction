@@ -1,5 +1,6 @@
 {
   "platform": {
     "node": "20.19.0"
-  }
+  },
+  "routes": [ { "route": "/api/*", "rewrite": "https://<function-app-name>.azurewebsites.net/api/*" } ]
 }
