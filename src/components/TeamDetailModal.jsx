@@ -2,8 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useAuth } from "../hooks/useAuth";
 import axios from "axios";
 import * as XLSX from "xlsx";
-
-const API_URL = "http://localhost:8000/api";
+import { API_URL } from "../config/api";
 
 const TeamDetailModal = ({ team, tournamentId, onClose, onSuccess }) => {
   const { user, token } = useAuth();
