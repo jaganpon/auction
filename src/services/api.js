@@ -1,7 +1,7 @@
 // src/services/api.js
 import axios from "axios";
 
-const API_URL = "https://auction-huaeb7a7g7dvcuhz.canadacentral-01.azurewebsites.net";
+const API_URL = "https://auctionbackend-bbfqfebpaua9dgbh.centralus-01.azurewebsites.net/";
 // const API_URL = import.meta.env.VITE_API_URL || "https://auction-huaeb7a7g7dvcuhz.canadacentral-01.azurewebsites.net";
 // Create axios instance with default config
 const apiClient = axios.create({
