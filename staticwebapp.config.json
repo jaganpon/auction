@@ -4,10 +4,10 @@
   },
   "routes": [{ 
     "route": "/api/*", 
-    "rewrite": "https://auction-huaeb7a7g7dvcuhz.canadacentral-01.azurewebsites.net/*" 
+    "rewrite": "https://auctionbackend-bbfqfebpaua9dgbh.centralus-01.azurewebsites.net/*" 
   }], 
   "globalHeaders": { 
-    "Access-Control-Allow-Origin": "https://wonderful-hill-027c21e10.1.azurestaticapps.net", 
+    "Access-Control-Allow-Origin": "https://auctionbackend-bbfqfebpaua9dgbh.centralus-01.azurewebsites.net/", 
     "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS", 
     "Access-Control-Allow-Headers": "*" 
   }
