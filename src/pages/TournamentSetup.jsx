@@ -53,7 +53,7 @@ const TournamentSetup = () => {
 
     try {
       const response = await axios.post(
-        `${API_URL}/tournaments`,
+        `${API_URL}/tournaments/`,
         {
           name: tournamentName,
           teams: validTeams.map((t) => ({
